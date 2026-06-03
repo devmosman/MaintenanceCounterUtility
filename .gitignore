@@ -1,0 +1,28 @@
+# Build / packaging artifacts
+build/
+dist/
+*.spec
+__pycache__/
+*.pyc
+
+# Local runtime data (must never be committed)
+logs/
+backups/
+data/
+check_result.txt
+
+# Local Python environment
+.venv/
+venv/
+
+# Third-party clones used only at build/dev time (not part of this source tree)
+# epson_print_conf is EUPL-licensed and used by gen_model_db.py to regenerate
+# model_db.py; clone it locally when regenerating. See DATA_PROVENANCE.md.
+epson_print_conf/
+ez-reset/
+reinkpy/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
