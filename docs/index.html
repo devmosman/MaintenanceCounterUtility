@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Waste Ink Maintenance Counter Utility</title>
+<meta name="description" content="Open-source, maintenance-focused utility for selected compatible inkjet printers. Reads and resets waste-ink maintenance counters over USB, after physical pad/tank service." />
+<style>
+  :root { --fg:#1d2330; --muted:#5a6472; --line:#e6e9ef; --brand:#1f6feb; --warn:#b35900; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:var(--fg); }
+  .wrap { max-width:860px; margin:0 auto; padding:0 20px; }
+  header { padding:54px 0 28px; text-align:center; border-bottom:1px solid var(--line); }
+  h1 { font-size:30px; margin:0 0 6px; }
+  .sub { color:var(--muted); margin:0 0 22px; }
+  .btn { display:inline-block; background:var(--brand); color:#fff; text-decoration:none; padding:13px 26px; border-radius:8px; font-weight:600; }
+  .btn.secondary { background:#fff; color:var(--brand); border:1px solid var(--brand); margin-left:8px; }
+  .btn.ghost { background:#fff; color:var(--fg); border:1px solid var(--line); }
+  section { padding:30px 0; border-bottom:1px solid var(--line); }
+  h2 { font-size:20px; margin:0 0 12px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+  ul { margin:8px 0 0; padding-left:20px; } li { margin:4px 0; }
+  .note { background:#fff8ef; border:1px solid #f0dcc0; color:var(--warn); padding:14px 16px; border-radius:8px; }
+  .muted { color:var(--muted); font-size:14px; }
+  code { background:#f3f5f9; padding:2px 6px; border-radius:5px; font-size:14px; }
+  footer { padding:26px 0 50px; color:var(--muted); font-size:13px; text-align:center; }
+  @media (max-width:640px){ .grid{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Waste Ink Maintenance Counter Utility</h1>
+    <p class="sub">Open-source · Windows · USB · EUPL-1.2 · maintenance-focused</p>
+    <a class="btn" href="https://github.com/devmosman/MaintenanceCounterUtility/releases/latest">Download (Windows)</a>
+    <a class="btn secondary" href="https://github.com/devmosman/MaintenanceCounterUtility">View source</a>
+    <p class="muted" style="margin-top:14px">A maintenance-support tool — <strong>not</strong> an official Epson product.</p>
+  </div>
+</header>
+
+<section><div class="wrap">
+  <h2>What it does</h2>
+  <div class="grid">
+    <div>
+      <strong>It can</strong>
+      <ul>
+        <li>Read approximate waste-ink maintenance counters over USB.</li>
+        <li>Read usage counters (printed pages, scans, cleaning cycles).</li>
+        <li>Back up the relevant printer memory before any change.</li>
+        <li>Reset the maintenance counters <em>after</em> you service the pad/tank.</li>
+      </ul>
+    </div>
+    <div>
+      <strong>It does not</strong>
+      <ul>
+        <li>Clean, empty, repair, or replace the waste-ink pad/tank.</li>
+        <li>Perform any physical maintenance.</li>
+        <li>Act as a way to avoid service requirements.</li>
+        <li>Guarantee compatibility, or provide legal advice.</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Important — physical maintenance first</h2>
+  <p class="note">A counter reset clears only the <strong>software</strong> counter. The physical waste-ink pad is still full and must be inspected, cleaned, replaced, or redirected to an external tank — otherwise ink can overflow inside the printer. Use this only for legitimate owner maintenance, after physical service.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Supported models</h2>
+  <p><strong>Verified on hardware (June 2026):</strong> L3250 / L3251 / L3253 / L3255.<br>
+  <strong>Experimental (unverified):</strong> additional compatible models — use extra caution.</p>
+  <p class="muted">See the <a href="https://github.com/devmosman/MaintenanceCounterUtility/blob/main/SUPPORTED_MODELS.md">full model list</a> and <a href="https://github.com/devmosman/MaintenanceCounterUtility/blob/main/DATA_PROVENANCE.md">data provenance</a>.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Install &amp; verify</h2>
+  <ul>
+    <li>Download the latest release, unzip, run <code>MaintenanceCounterUtility.exe</code>.</li>
+    <li>The app is <strong>unsigned</strong>: SmartScreen may warn → <em>More info → Run anyway</em>.</li>
+    <li>Verify integrity against <code>SHA256SUMS.txt</code>, or build it yourself from source.</li>
+    <li>After a reset, <strong>power-cycle the printer</strong> to commit the change.</li>
+  </ul>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Support the project</h2>
+  <p class="muted">This tool is free and open-source. If it helped you, you can support its upkeep (optional).</p>
+  <!-- Replace the href below with your Ko-fi / PayPal / GitHub Sponsors link when ready -->
+  <a class="btn ghost" href="#">❤ Support (add your donate link)</a>
+</div></section>
+
+<footer><div class="wrap">
+  <p>This project is not affiliated with, endorsed by, sponsored by, or approved by Epson. Epson is a trademark of its respective owner. Product names are used only to describe compatibility with selected printer models.</p>
+  <p>Licensed under EUPL-1.2. Not legal advice; laws vary by jurisdiction.</p>
+</div></footer>
+</body>
+</html>

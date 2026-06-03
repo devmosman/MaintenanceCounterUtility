@@ -5,6 +5,21 @@ Version 1.0.0 — Open-source, maintenance-focused, EUPL-1.2 licensed.
 Executable: `MaintenanceCounterUtility.exe`
 Platform: Windows 64-bit, USB connection only.
 
+## Download & install
+
+1. Download the latest release: **https://github.com/devmosman/MaintenanceCounterUtility/releases/latest**
+2. Unzip and run `MaintenanceCounterUtility.exe` (no installation needed).
+3. On first run, read and accept the Terms of Use.
+4. Connect the printer by **USB cable**, power it on, then use the app.
+
+**Unsigned binary note:** the `.exe` is not code-signed, so Windows SmartScreen may show *"Windows protected your PC"* → click **More info → Run anyway**. Some antivirus tools flag PyInstaller `.exe` files as a false positive.
+
+**Verify your download (recommended):** each release includes `SHA256SUMS.txt`. Check the file's hash with PowerShell:
+```
+Get-FileHash .\MaintenanceCounterUtility.exe -Algorithm SHA256
+```
+and compare it to the value in `SHA256SUMS.txt`. You can also build it yourself from source (see the build instructions below) — the full source is published with every release under EUPL-1.2.
+
 ## (A) What this project is
 
 The **Waste Ink Maintenance Counter Utility** is an open-source, maintenance-focused utility for selected **compatible** inkjet printers. It reads the approximate waste-ink maintenance counters that some printers expose, creates a local backup of the relevant data, and can reset those counters **only after** the printer owner has physically inspected, cleaned, replaced, or redirected (via an external tank) the waste-ink pad/tank.

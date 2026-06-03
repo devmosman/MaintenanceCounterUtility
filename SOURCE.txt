@@ -1,0 +1,25 @@
+Waste Ink Maintenance Counter Utility
+=====================================
+
+This program is free/open-source software licensed under the European Union
+Public Licence v1.2 (EUPL-1.2). The complete corresponding source code is
+published with every release.
+
+Source repository:
+    https://github.com/devmosman/MaintenanceCounterUtility
+
+License:
+    See LICENSE.txt (EUPL-1.2). Attribution and third-party data provenance are
+    documented in NOTICE.md and DATA_PROVENANCE.md.
+
+Build it yourself:
+    python -m venv .venv
+    .venv\Scripts\activate
+    pip install pyinstaller
+    pyinstaller --onefile --windowed --clean --noconfirm --name MaintenanceCounterUtility ^
+      --hidden-import epson_d4 --hidden-import model_db --hidden-import printer_core ^
+      --hidden-import eeprom_io --hidden-import operations --hidden-import oplog ^
+      maintenance_counter_app.py
+
+Not affiliated with, endorsed by, sponsored by, or approved by Epson. Epson is a
+trademark of its respective owner; product names indicate compatibility only.
