@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FAQ — Waste Ink Maintenance Counter Utility</title>
+<meta name="description" content="Frequently asked questions about the open-source Waste Ink Maintenance Counter Utility: what it does, safety, supported models, privacy, and SmartScreen/antivirus notes." />
+<link rel="canonical" href="https://devmosman.github.io/MaintenanceCounterUtility/faq.html" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="FAQ — Waste Ink Maintenance Counter Utility" />
+<meta property="og:description" content="Answers about what the tool does, safety, supported models, privacy, and more." />
+<meta property="og:url" content="https://devmosman.github.io/MaintenanceCounterUtility/faq.html" />
+<meta property="og:image" content="https://devmosman.github.io/MaintenanceCounterUtility/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<style>
+  body{margin:0;font:16px/1.65 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1d2330}
+  .wrap{max-width:820px;margin:0 auto;padding:0 20px}
+  header{padding:40px 0 18px;border-bottom:1px solid #e6e9ef}
+  h1{font-size:28px;margin:0 0 6px}
+  a{color:#1f6feb}
+  nav{font-size:14px;color:#5a6472;margin-top:8px}
+  h3{margin:26px 0 4px;font-size:18px}
+  p{margin:6px 0}
+  .note{background:#fff8ef;border:1px solid #f0dcc0;color:#b35900;padding:12px 14px;border-radius:8px}
+  footer{padding:26px 0 50px;color:#5a6472;font-size:13px;border-top:1px solid #e6e9ef;margin-top:30px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Frequently asked questions</h1>
+  <nav><a href="index.html">Home</a> · <a href="https://github.com/devmosman/MaintenanceCounterUtility">Source</a> · <a href="https://github.com/devmosman/MaintenanceCounterUtility/releases/latest">Download</a></nav>
+</div></header>
+
+<main><div class="wrap">
+
+<h3>What does this tool do?</h3>
+<p>It reads the approximate waste-ink maintenance counters that some printers expose over USB, backs up the relevant printer memory, and can reset those counters <strong>after</strong> you have physically serviced the waste-ink pad/tank.</p>
+
+<h3>Does resetting fix a full waste-ink pad?</h3>
+<p class="note">No. A reset clears only a <strong>software</strong> counter. The physical pad is still full. You must inspect, clean, replace the pad, or install/verify an external waste-ink tank first — otherwise ink can overflow inside the printer.</p>
+
+<h3>Is it safe?</h3>
+<p>The tool reads first, takes an automatic backup before any reset, and requires explicit confirmations. Writing to printer memory still carries some risk, so use it responsibly and only after physical service. It is provided “as is”, without warranty.</p>
+
+<h3>Which models are supported?</h3>
+<p>The L3250 / L3251 / L3253 / L3255 family is verified on hardware. Additional models are marked experimental (data not verified on hardware by this project). See the <a href="https://github.com/devmosman/MaintenanceCounterUtility/blob/main/SUPPORTED_MODELS.md">supported models list</a>.</p>
+
+<h3>Is it free and open-source?</h3>
+<p>Yes — licensed under EUPL-1.2, with full source published in the repository. No ads, no telemetry.</p>
+
+<h3>Is this an Epson product?</h3>
+<p>No. This project is not affiliated with, endorsed by, sponsored by, or approved by Epson. “Epson” is a trademark of its respective owner; product names indicate compatibility only.</p>
+
+<h3>Why does Windows warn when I run it?</h3>
+<p>The executable is not code-signed, so SmartScreen may show “Windows protected your PC”. Click <em>More info → Run anyway</em>. You can also verify the SHA-256 against <code>SHA256SUMS.txt</code>, or build from source.</p>
+
+<h3>My antivirus flagged the .exe.</h3>
+<p>PyInstaller executables are sometimes false-flagged. Verify the published SHA-256, or build it yourself from source.</p>
+
+<h3>Does it collect my data?</h3>
+<p>No telemetry. Logs and backups are stored locally on your device. The local log records the model, counters, backup path, confirmation flags and errors — not serial numbers or personal data. See <a href="https://github.com/devmosman/MaintenanceCounterUtility/blob/main/PRIVACY.md">PRIVACY.md</a>.</p>
+
+<h3>Does it work over Wi-Fi?</h3>
+<p>No — USB only.</p>
+
+<h3>It says my model isn’t in the database.</h3>
+<p>Only listed models are supported. You can help add and verify a model legitimately — see <a href="https://github.com/devmosman/MaintenanceCounterUtility/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>.</p>
+
+<h3>The error didn’t clear after a reset.</h3>
+<p>Power-cycle the printer (off with its power button, wait a few seconds, on) to commit the change.</p>
+
+<h3>Is this legal?</h3>
+<p>Anti-circumvention, repair, warranty, consumer-protection and trademark laws vary by jurisdiction. This is not legal advice. Use only for legitimate owner maintenance on hardware you own or are authorized to maintain.</p>
+
+</div></main>
+
+<footer><div class="wrap">
+  <p>Not affiliated with, endorsed by, sponsored by, or approved by Epson. Epson is a trademark of its respective owner. Licensed under EUPL-1.2. Not legal advice; laws vary by jurisdiction.</p>
+</div></footer>
+</body>
+</html>

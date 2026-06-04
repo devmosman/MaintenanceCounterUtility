@@ -2,6 +2,14 @@
 
 ![Main window](docs/img/screenshot.png)
 
+[![License: EUPL-1.2](https://img.shields.io/badge/license-EUPL--1.2-blue)](LICENSE.txt)
+[![Latest release](https://img.shields.io/github/v/release/devmosman/MaintenanceCounterUtility)](https://github.com/devmosman/MaintenanceCounterUtility/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/devmosman/MaintenanceCounterUtility/total)](https://github.com/devmosman/MaintenanceCounterUtility/releases)
+[![Stars](https://img.shields.io/github/stars/devmosman/MaintenanceCounterUtility)](https://github.com/devmosman/MaintenanceCounterUtility/stargazers)
+![Platform: Windows](https://img.shields.io/badge/platform-Windows-lightgrey)
+
+**[Website](https://devmosman.github.io/MaintenanceCounterUtility/)** · **[Download](https://github.com/devmosman/MaintenanceCounterUtility/releases/latest)** · **[User Guide](USER_GUIDE.md)** · **[FAQ](docs/faq.html)**
+
 Version 1.0.0 — Open-source, maintenance-focused, EUPL-1.2 licensed.
 
 Executable: `MaintenanceCounterUtility.exe`

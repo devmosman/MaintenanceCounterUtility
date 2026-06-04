@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Epson L3250 “Service Required” / ink pad at end of service life — service &amp; reset guide</title>
+<meta name="description" content="What the Epson L3250 'a printer's ink pad is at the end of its service life' / Service Required message means, how to service the waste-ink pad responsibly, and how to reset the maintenance counter with a free open-source utility." />
+<link rel="canonical" href="https://devmosman.github.io/MaintenanceCounterUtility/guide-fix-epson-l3250-waste-ink.html" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Epson L3250 ink-pad / Service Required — service & reset guide" />
+<meta property="og:description" content="Understand the waste-ink pad message, service it properly, then reset the maintenance counter with a free open-source tool." />
+<meta property="og:url" content="https://devmosman.github.io/MaintenanceCounterUtility/guide-fix-epson-l3250-waste-ink.html" />
+<meta property="og:image" content="https://devmosman.github.io/MaintenanceCounterUtility/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<style>
+  body{margin:0;font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1d2330}
+  .wrap{max-width:820px;margin:0 auto;padding:0 20px}
+  header{padding:40px 0 16px;border-bottom:1px solid #e6e9ef}
+  h1{font-size:27px;margin:0 0 6px;line-height:1.25}
+  nav{font-size:14px;color:#5a6472;margin-top:8px}
+  a{color:#1f6feb}
+  h2{font-size:20px;margin:30px 0 8px}
+  ol,ul{padding-left:22px} li{margin:5px 0}
+  .note{background:#fff8ef;border:1px solid #f0dcc0;color:#b35900;padding:12px 14px;border-radius:8px}
+  .cta{display:inline-block;background:#1f6feb;color:#fff;text-decoration:none;padding:11px 22px;border-radius:8px;font-weight:600;margin:8px 0}
+  code{background:#f3f5f9;padding:2px 6px;border-radius:5px;font-size:14px}
+  footer{padding:26px 0 50px;color:#5a6472;font-size:13px;border-top:1px solid #e6e9ef;margin-top:30px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Epson L3250 “A printer’s ink pad is at the end of its service life” — service &amp; reset guide</h1>
+  <nav><a href="index.html">Home</a> · <a href="faq.html">FAQ</a> · <a href="https://github.com/devmosman/MaintenanceCounterUtility/releases/latest">Download the tool</a></nav>
+</div></header>
+
+<main><div class="wrap">
+
+<p>If your Epson L3250 (or L3251 / L3253 / L3255) shows <em>“A printer’s ink pad is at the end of its service life”</em> or a <strong>Service Required</strong> message, this guide explains what it means, how to <strong>physically service</strong> the waste-ink pad responsibly, and how to <strong>reset the maintenance counter</strong> afterwards with a free, open-source utility.</p>
+
+<h2>What the message means</h2>
+<p>During printing and head cleaning, a small amount of waste ink is collected by an internal <strong>waste-ink pad</strong>. The printer counts how much it has collected. When that counter reaches its limit, the printer reports that the pad is at the end of its service life and stops, to avoid ink overflowing inside the chassis.</p>
+
+<h2>The right fix: service the pad first</h2>
+<p class="note">Important: clearing the counter in software does <strong>not</strong> empty the pad. The pad is a physical part that is full. If you reset the counter without servicing the pad, ink can eventually overflow inside the printer. Always do the physical maintenance first.</p>
+<p>Your options, depending on your situation and skill:</p>
+<ul>
+  <li><strong>Replace or clean the waste-ink pad</strong> (genuine service part or a replacement pad kit).</li>
+  <li><strong>Install an external waste-ink tank</strong> — a small bottle/tank routed from the printer’s waste outlet, so waste ink no longer saturates the internal pad.</li>
+  <li>Have an authorized service technician carry out the maintenance.</li>
+</ul>
+<p>Once the pad has been inspected, cleaned, replaced, or redirected to a working external tank, the maintenance counter can be reset.</p>
+
+<h2>Reset the maintenance counter (after physical service)</h2>
+<p>The free, open-source <strong>Waste Ink Maintenance Counter Utility</strong> can read and reset the counters over USB on the L3250 family.</p>
+<a class="cta" href="https://github.com/devmosman/MaintenanceCounterUtility/releases/latest">⬇ Download the utility (Windows)</a>
+<ol>
+  <li>Connect the printer to a Windows PC with a <strong>USB cable</strong> and power it on.</li>
+  <li>Run <code>MaintenanceCounterUtility.exe</code>. (Unsigned: if SmartScreen warns, choose <em>More info → Run anyway</em>.)</li>
+  <li>Accept the Terms, then click <strong>Refresh</strong> to read the counters.</li>
+  <li>Click <strong>Backup</strong> (a backup is also taken automatically before any reset).</li>
+  <li>Click <strong>Reset Maintenance Counters</strong>, read the warning, and tick the box confirming the pad/tank has been serviced. Click <strong>Continue</strong>, then confirm.</li>
+  <li><strong>Power-cycle the printer</strong> (off, wait a few seconds, on) to commit the change.</li>
+</ol>
+<p>Full instructions: <a href="https://github.com/devmosman/MaintenanceCounterUtility/blob/main/USER_GUIDE.md">User Guide</a>. Questions: <a href="faq.html">FAQ</a>.</p>
+
+<h2>Notes &amp; safety</h2>
+<ul>
+  <li>The tool is free and open-source (EUPL-1.2), with no ads and no telemetry.</li>
+  <li>It does not perform physical maintenance and is not a way to avoid service requirements.</li>
+  <li>Use only for legitimate owner maintenance on hardware you own or are authorized to maintain.</li>
+</ul>
+
+</div></main>
+
+<footer><div class="wrap">
+  <p>Not affiliated with, endorsed by, sponsored by, or approved by Epson. “Epson” and model names are trademarks of their respective owner and are used only to describe compatibility. Licensed under EUPL-1.2. This is not legal advice; anti-circumvention, repair, warranty, and consumer-protection laws vary by jurisdiction.</p>
+</div></footer>
+</body>
+</html>
