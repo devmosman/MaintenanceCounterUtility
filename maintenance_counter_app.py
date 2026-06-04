@@ -163,6 +163,14 @@ def _center(win, w, h):
     y = max(0, (sh - h) // 2 - 20)
     win.geometry(f"{w}x{h}+{x}+{y}")
     win.minsize(min(w, 460), min(h, 320))
+    # make sure the dialog is visible and on top (not hidden behind other windows)
+    try:
+        win.lift()
+        win.focus_force()
+        win.attributes("-topmost", True)
+        win.after(250, lambda: win.attributes("-topmost", False))
+    except Exception:
+        pass
 
 
 def _scrolled_text(parent, body):
@@ -295,11 +303,21 @@ def launch_gui():
         pass
 
     selftest = os.environ.get("EWR_GUI_SELFTEST") == "1"
+    # Bring the main window to the front first (avoids it/the dialog opening hidden
+    # behind other windows on some Windows setups).
+    try:
+        root.update_idletasks()
+        root.lift()
+        root.attributes("-topmost", True)
+        root.after(500, lambda: root.attributes("-topmost", False))
+    except Exception:
+        pass
     if not terms_accepted() and not selftest:
-        root.withdraw()
+        # Do NOT withdraw the root: a modal whose parent is withdrawn can open
+        # without a taskbar entry / behind other windows.
         if not show_terms(root):
             root.destroy(); return
-        accept_terms(); root.deiconify()
+        accept_terms()
 
     ttk.Label(root, text=APP_TITLE, font=("Segoe UI", 13, "bold")).pack(pady=(10, 0))
     ttk.Label(root, text="Maintenance-support utility · not an official Epson product",
@@ -492,7 +510,19 @@ def launch_gui():
 def main():
     if "--check" in sys.argv:
         sys.exit(check_mode())
-    launch_gui()
+    try:
+        launch_gui()
+    except Exception:
+        # In a windowed build the console is hidden; persist the traceback so a
+        # startup failure can be diagnosed.
+        import traceback
+        try:
+            with open(os.path.join(eeprom_io.app_dir(), "startup_error.log"),
+                      "w", encoding="utf-8") as f:
+                f.write(traceback.format_exc())
+        except Exception:
+            pass
+        raise
 
 
 if __name__ == "__main__":
