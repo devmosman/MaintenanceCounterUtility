@@ -1,5 +1,7 @@
 # Waste Ink Maintenance Counter Utility
 
+![Main window](docs/img/screenshot.png)
+
 Version 1.0.0 — Open-source, maintenance-focused, EUPL-1.2 licensed.
 
 Executable: `MaintenanceCounterUtility.exe`
@@ -19,6 +21,8 @@ Platform: Windows 64-bit, USB connection only.
 Get-FileHash .\MaintenanceCounterUtility.exe -Algorithm SHA256
 ```
 and compare it to the value in `SHA256SUMS.txt`. You can also build it yourself from source (see the build instructions below) — the full source is published with every release under EUPL-1.2.
+
+**Full step-by-step usage:** see the **[User Guide](USER_GUIDE.md)**.
 
 ## (A) What this project is
 

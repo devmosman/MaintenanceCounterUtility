@@ -41,6 +41,12 @@ def open_url(url):
     except Exception:
         pass
 
+
+def resource_path(rel):
+    """Path to a bundled resource, working both from source and a PyInstaller exe."""
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, rel)
+
 NON_AFFILIATION = (
     "This project is not affiliated with, endorsed by, sponsored by, or approved "
     "by Epson. Epson is a trademark of its respective owner. Product names are "
@@ -311,6 +317,10 @@ def launch_gui():
     root = tk.Tk()
     root.title(APP_TITLE)
     root.minsize(520, 720)
+    try:
+        root.iconbitmap(resource_path(os.path.join("assets", "app.ico")))
+    except Exception:
+        pass
     try:
         ttk.Style(root).theme_use("vista")
     except Exception:
