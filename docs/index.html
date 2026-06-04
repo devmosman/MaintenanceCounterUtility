@@ -6,35 +6,53 @@
 <title>Waste Ink Maintenance Counter Utility</title>
 <meta name="description" content="Open-source, maintenance-focused utility for selected compatible inkjet printers. Reads and resets waste-ink maintenance counters over USB, after physical pad/tank service." />
 <style>
-  :root { --fg:#1d2330; --muted:#5a6472; --line:#e6e9ef; --brand:#1f6feb; --warn:#b35900; }
+  :root { --fg:#1d2330; --muted:#5a6472; --line:#e6e9ef; --brand:#1f6feb; --warn:#b35900; --pink:#ff5e8a; }
   * { box-sizing:border-box; }
   body { margin:0; font:16px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:var(--fg); }
   .wrap { max-width:860px; margin:0 auto; padding:0 20px; }
-  header { padding:54px 0 28px; text-align:center; border-bottom:1px solid var(--line); }
+  header { padding:54px 0 30px; text-align:center; border-bottom:1px solid var(--line); }
   h1 { font-size:30px; margin:0 0 6px; }
-  .sub { color:var(--muted); margin:0 0 22px; }
-  .btn { display:inline-block; background:var(--brand); color:#fff; text-decoration:none; padding:13px 26px; border-radius:8px; font-weight:600; }
-  .btn.secondary { background:#fff; color:var(--brand); border:1px solid var(--brand); margin-left:8px; }
-  .btn.ghost { background:#fff; color:var(--fg); border:1px solid var(--line); }
+  .sub { color:var(--muted); margin:0 0 8px; }
+  .tags { color:var(--muted); font-size:13px; margin:0 0 22px; }
+  .btn { display:inline-block; margin:6px 4px; text-decoration:none; padding:13px 26px; border-radius:8px; font-weight:600; border:1px solid transparent; }
+  .btn.primary { background:var(--brand); color:#fff; }
+  .btn.secondary { background:#fff; color:var(--brand); border-color:var(--brand); }
+  .btn.ghost { background:#fff; color:var(--fg); border-color:var(--line); }
+  .btn.donate { background:var(--pink); color:#fff; }
   section { padding:30px 0; border-bottom:1px solid var(--line); }
   h2 { font-size:20px; margin:0 0 12px; }
   .grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
   ul { margin:8px 0 0; padding-left:20px; } li { margin:4px 0; }
   .note { background:#fff8ef; border:1px solid #f0dcc0; color:var(--warn); padding:14px 16px; border-radius:8px; }
   .muted { color:var(--muted); font-size:14px; }
+  a.inline { color:var(--brand); }
   code { background:#f3f5f9; padding:2px 6px; border-radius:5px; font-size:14px; }
+  .heart { display:inline-block; color:#fff; }
+  .support-end { text-align:center; }
+  .support-end .bigheart { font-size:42px; color:var(--pink); display:inline-block; }
   footer { padding:26px 0 50px; color:var(--muted); font-size:13px; text-align:center; }
   @media (max-width:640px){ .grid{ grid-template-columns:1fr; } }
+
+  /* Animations */
+  @keyframes heartbeat { 0%,100%{transform:scale(1);} 14%{transform:scale(1.25);} 28%{transform:scale(1);} 42%{transform:scale(1.25);} 70%{transform:scale(1);} }
+  @keyframes pulseShadow { 0%{box-shadow:0 0 0 0 rgba(255,94,138,.55);} 70%{box-shadow:0 0 0 14px rgba(255,94,138,0);} 100%{box-shadow:0 0 0 0 rgba(255,94,138,0);} }
+  @keyframes bob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
+  .btn.donate { animation: pulseShadow 2s infinite; }
+  .btn.donate .heart, .support-end .bigheart { animation: heartbeat 1.4s infinite; }
+  .btn.download { animation: bob 2.4s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce){ * { animation: none !important; } }
 </style>
 </head>
 <body>
 <header>
   <div class="wrap">
     <h1>Waste Ink Maintenance Counter Utility</h1>
-    <p class="sub">Open-source · Windows · USB · EUPL-1.2 · maintenance-focused</p>
-    <a class="btn" href="https://github.com/devmosman/MaintenanceCounterUtility/releases/latest">Download (Windows)</a>
+    <p class="sub">A maintenance-support tool — <strong>not</strong> an official Epson product.</p>
+    <p class="tags">Open-source · Windows · USB · EUPL-1.2 · no ads · no telemetry</p>
+    <a class="btn primary download" href="https://github.com/devmosman/MaintenanceCounterUtility/releases/latest">⬇ Download (Windows)</a>
     <a class="btn secondary" href="https://github.com/devmosman/MaintenanceCounterUtility">View source</a>
-    <p class="muted" style="margin-top:14px">A maintenance-support tool — <strong>not</strong> an official Epson product.</p>
+    <a class="btn donate" href="https://ko-fi.com/devmosman" target="_blank" rel="noopener"><span class="heart">❤</span> Support on Ko‑fi</a>
+    <p class="muted" style="margin-top:14px">New here? See <a class="inline" href="#install">install &amp; verification ↓</a></p>
   </div>
 </header>
 
@@ -71,23 +89,25 @@
   <h2>Supported models</h2>
   <p><strong>Verified on hardware (June 2026):</strong> L3250 / L3251 / L3253 / L3255.<br>
   <strong>Experimental (unverified):</strong> additional compatible models — use extra caution.</p>
-  <p class="muted">See the <a href="https://github.com/devmosman/MaintenanceCounterUtility/blob/main/SUPPORTED_MODELS.md">full model list</a> and <a href="https://github.com/devmosman/MaintenanceCounterUtility/blob/main/DATA_PROVENANCE.md">data provenance</a>.</p>
+  <p class="muted">See the <a class="inline" href="https://github.com/devmosman/MaintenanceCounterUtility/blob/main/SUPPORTED_MODELS.md">full model list</a> and <a class="inline" href="https://github.com/devmosman/MaintenanceCounterUtility/blob/main/DATA_PROVENANCE.md">data provenance</a>.</p>
 </div></section>
 
-<section><div class="wrap">
+<section id="install"><div class="wrap">
   <h2>Install &amp; verify</h2>
   <ul>
-    <li>Download the latest release, unzip, run <code>MaintenanceCounterUtility.exe</code>.</li>
+    <li><a class="inline" href="https://github.com/devmosman/MaintenanceCounterUtility/releases/latest">Download the latest release</a>, unzip, run <code>MaintenanceCounterUtility.exe</code>.</li>
     <li>The app is <strong>unsigned</strong>: SmartScreen may warn → <em>More info → Run anyway</em>.</li>
     <li>Verify integrity against <code>SHA256SUMS.txt</code>, or build it yourself from source.</li>
+    <li>Connect the printer by USB, accept the Terms on first run, then use the app.</li>
     <li>After a reset, <strong>power-cycle the printer</strong> to commit the change.</li>
   </ul>
 </div></section>
 
-<section><div class="wrap">
+<section class="support-end"><div class="wrap">
+  <div class="bigheart">❤</div>
   <h2>Support the project</h2>
-  <p class="muted">This tool is free and open-source. If it helped you, you can support its upkeep (optional).</p>
-  <a class="btn ghost" href="https://ko-fi.com/devmosman" target="_blank" rel="noopener">❤ Support on Ko‑fi</a>
+  <p class="muted">This tool is free and open-source, with no ads and no telemetry. If it helped you, a small tip keeps it maintained (entirely optional).</p>
+  <a class="btn donate" href="https://ko-fi.com/devmosman" target="_blank" rel="noopener"><span class="heart">❤</span> Support on Ko‑fi</a>
 </div></section>
 
 <footer><div class="wrap">

@@ -20,6 +20,7 @@ Usage:
 import os
 import sys
 import json
+import webbrowser
 
 import printer_core
 import eeprom_io
@@ -29,6 +30,16 @@ import oplog
 APP_TITLE = "Waste Ink Maintenance Counter Utility"
 VERSION = "1.0.0"
 TERMS_VERSION = 2
+
+WEBSITE_URL = "https://devmosman.github.io/MaintenanceCounterUtility"
+DONATE_URL = "https://ko-fi.com/devmosman"
+
+
+def open_url(url):
+    try:
+        webbrowser.open(url)
+    except Exception:
+        pass
 
 NON_AFFILIATION = (
     "This project is not affiliated with, endorsed by, sponsored by, or approved "
@@ -283,9 +294,12 @@ def show_about(root):
             "avoid service requirements.\n\n"
             "Licensed under EUPL-1.2. See LICENSE.txt and NOTICE.txt. Not legal "
             "advice; laws vary by jurisdiction.")
-    ttk.Button(win, text="Close", command=win.destroy).pack(side="bottom", pady=8)
+    abar = ttk.Frame(win); abar.pack(side="bottom", pady=8)
+    ttk.Button(abar, text="🌐 Website", command=lambda: open_url(WEBSITE_URL)).pack(side="left", padx=4)
+    ttk.Button(abar, text="❤ Support on Ko-fi", command=lambda: open_url(DONATE_URL)).pack(side="left", padx=4)
+    ttk.Button(abar, text="Close", command=win.destroy).pack(side="left", padx=4)
     _scrolled_text(win, body).pack(side="top", fill="both", expand=True, padx=12, pady=6)
-    _center(win, 480, 400)
+    _center(win, 520, 420)
     root.wait_window(win)
 
 
@@ -492,6 +506,14 @@ def launch_gui():
     ttk.Button(btns, text="Reset Maintenance Counters", command=reset_action).grid(row=0, column=2, padx=3)
     ttk.Button(btns, text="Restore…", command=restore_action).grid(row=0, column=3, padx=3)
     ttk.Button(btns, text="About", command=lambda: show_about(root)).grid(row=0, column=4, padx=3)
+
+    # Website + donation (visible to the user)
+    links = ttk.Frame(root); links.pack(pady=(0, 4))
+    ttk.Button(links, text="🌐 Website", command=lambda: open_url(WEBSITE_URL)).pack(side="left", padx=4)
+    tk.Button(links, text="❤ Support on Ko-fi", command=lambda: open_url(DONATE_URL),
+              bg="#ff5e8a", fg="white", activebackground="#ff7aa0", activeforeground="white",
+              relief="flat", padx=12, pady=3, cursor="hand2",
+              font=("Segoe UI", 9, "bold")).pack(side="left", padx=4)
 
     foot = ttk.Frame(root); foot.pack(side="bottom", fill="x")
     ttk.Label(foot, text=NON_AFFILIATION, wraplength=500, foreground="#777",
