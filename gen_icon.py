@@ -23,4 +23,10 @@ d.ellipse([cx - 22, cy - 14, cx - 2, cy + 6], fill=(210, 226, 255, 255))
 os.makedirs("assets", exist_ok=True)
 img.save(os.path.join("assets", "app.ico"),
          sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
-print("Wrote assets/app.ico")
+img.save(os.path.join("assets", "app.png"))
+try:
+    img_512 = img.resize((512, 512), Image.Resampling.LANCZOS)
+    img_512.save(os.path.join("assets", "app.icns"))
+    print("Wrote assets/app.ico, assets/app.png, assets/app.icns")
+except Exception as e:
+    print(f"Wrote assets/app.ico, assets/app.png (icns skipped: {e})")

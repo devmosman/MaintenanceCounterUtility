@@ -7,158 +7,397 @@ Implemented from public specifications and documented facts:
     epson_print_conf project.
   * Windows usbprint.sys device-interface access (Win32 CreateFile / ReadFile /
     WriteFile / DeviceIoControl) per Microsoft documentation.
+  * macOS / POSIX USB Printer Class (0x07) access via libusb / PyUSB per the
+    USB Device Class Definition for Printing Devices 1.1 specification.
 
 This module is an independent implementation; it does not copy third-party code.
 Only the protocol/API facts (which are not copyrightable) are used.
 """
 import ctypes
+import ctypes.util
+import os
 import struct
+import sys
 import time
-import winreg
-from ctypes import wintypes
 
-# --------------------------------------------------------------------------
-# Win32 USBPRINT transport
-# --------------------------------------------------------------------------
-GUID_USBPRINT = "{28d78fad-5a12-11d1-ae5b-0000f803a8c2}"
-GENERIC_READ = 0x80000000
-GENERIC_WRITE = 0x40000000
-FILE_SHARE_RW = 0x03
-OPEN_EXISTING = 3
-FILE_FLAG_NO_BUFFERING = 0x20000000
-FILE_FLAG_WRITE_THROUGH = 0x80000000
-INVALID_HANDLE = wintypes.HANDLE(-1).value
+EPSON_VID = 0x04B8
+USB_CLASS_PRINTER = 0x07
+USB_REQ_GET_DEVICE_ID = 0x00
+USB_REQ_SOFT_RESET = 0x02
 
-# usbprint IOCTLs (Microsoft documented control codes)
-IOCTL_USBPRINT_GET_1284_ID = 0x220034
-IOCTL_USBPRINT_SOFT_RESET = 0x220040
+if sys.platform == "win32":
+    import winreg
+    from ctypes import wintypes
 
-_k32 = ctypes.WinDLL("kernel32", use_last_error=True)
-_k32.CreateFileW.restype = wintypes.HANDLE
-_k32.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
-                             ctypes.c_void_p, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
-_PDWORD = ctypes.POINTER(wintypes.DWORD)
-_k32.ReadFile.restype = wintypes.BOOL
-_k32.ReadFile.argtypes = [wintypes.HANDLE, ctypes.c_void_p, wintypes.DWORD, _PDWORD, ctypes.c_void_p]
-_k32.WriteFile.restype = wintypes.BOOL
-_k32.WriteFile.argtypes = [wintypes.HANDLE, ctypes.c_void_p, wintypes.DWORD, _PDWORD, ctypes.c_void_p]
-_k32.DeviceIoControl.restype = wintypes.BOOL
-_k32.DeviceIoControl.argtypes = [wintypes.HANDLE, wintypes.DWORD, ctypes.c_void_p, wintypes.DWORD,
-                                 ctypes.c_void_p, wintypes.DWORD, _PDWORD, ctypes.c_void_p]
-_k32.CloseHandle.restype = wintypes.BOOL
-_k32.CloseHandle.argtypes = [wintypes.HANDLE]
+    # --------------------------------------------------------------------------
+    # Win32 USBPRINT transport
+    # --------------------------------------------------------------------------
+    GUID_USBPRINT = "{28d78fad-5a12-11d1-ae5b-0000f803a8c2}"
+    GENERIC_READ = 0x80000000
+    GENERIC_WRITE = 0x40000000
+    FILE_SHARE_RW = 0x03
+    OPEN_EXISTING = 3
+    FILE_FLAG_NO_BUFFERING = 0x20000000
+    FILE_FLAG_WRITE_THROUGH = 0x80000000
+    INVALID_HANDLE = wintypes.HANDLE(-1).value
 
+    # usbprint IOCTLs (Microsoft documented control codes)
+    IOCTL_USBPRINT_GET_1284_ID = 0x220034
+    IOCTL_USBPRINT_SOFT_RESET = 0x220040
 
-def enumerate_epson_usb():
-    """Return CreateFile device paths for connected Epson (VID_04B8) USBPRINT
-    interfaces, discovered via the device-interface class registry key."""
-    paths = []
-    key_path = r"SYSTEM\CurrentControlSet\Control\DeviceClasses\%s" % GUID_USBPRINT
-    try:
-        root = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path)
-    except OSError:
+    _k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    _k32.CreateFileW.restype = wintypes.HANDLE
+    _k32.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+                                 ctypes.c_void_p, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+    _PDWORD = ctypes.POINTER(wintypes.DWORD)
+    _k32.ReadFile.restype = wintypes.BOOL
+    _k32.ReadFile.argtypes = [wintypes.HANDLE, ctypes.c_void_p, wintypes.DWORD, _PDWORD, ctypes.c_void_p]
+    _k32.WriteFile.restype = wintypes.BOOL
+    _k32.WriteFile.argtypes = [wintypes.HANDLE, ctypes.c_void_p, wintypes.DWORD, _PDWORD, ctypes.c_void_p]
+    _k32.DeviceIoControl.restype = wintypes.BOOL
+    _k32.DeviceIoControl.argtypes = [wintypes.HANDLE, wintypes.DWORD, ctypes.c_void_p, wintypes.DWORD,
+                                     ctypes.c_void_p, wintypes.DWORD, _PDWORD, ctypes.c_void_p]
+    _k32.CloseHandle.restype = wintypes.BOOL
+    _k32.CloseHandle.argtypes = [wintypes.HANDLE]
+
+    def enumerate_epson_usb():
+        """Return CreateFile device paths for connected Epson (VID_04B8) USBPRINT
+        interfaces, discovered via the device-interface class registry key."""
+        paths = []
+        key_path = r"SYSTEM\CurrentControlSet\Control\DeviceClasses\%s" % GUID_USBPRINT
+        try:
+            root = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path)
+        except OSError:
+            return paths
+        try:
+            i = 0
+            while True:
+                try:
+                    sub = winreg.EnumKey(root, i)
+                except OSError:
+                    break
+                i += 1
+                # sub looks like: ##?#USB#VID_04B8&PID_118A&MI_01#...#{guid}
+                if "VID_04B8" not in sub.upper():
+                    continue
+                path = sub
+                if path.startswith("##?#"):
+                    path = "\\\\?\\" + path[4:]
+                paths.append(path)
+        finally:
+            winreg.CloseKey(root)
         return paths
-    try:
-        i = 0
-        while True:
+
+    class UsbTransport:
+        """Bidirectional byte pipe to the printer's usbprint interface."""
+        MAX_READ = 0x100000
+
+        def __init__(self, path):
+            self.path = path
+            self.h = None
+            self._buf = b""
+
+        def open(self):
+            self.h = _k32.CreateFileW(self.path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_RW,
+                                      None, OPEN_EXISTING,
+                                      FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH, None)
+            if not self.h or self.h == INVALID_HANDLE:
+                raise OSError(f"Cannot open USB device (err {ctypes.get_last_error()})")
+            self._ioctl(IOCTL_USBPRINT_SOFT_RESET)  # best-effort reset of the printer channel
+            return self
+
+        def close(self):
+            if self.h and self.h != INVALID_HANDLE:
+                _k32.CloseHandle(self.h)
+            self.h = None
+
+        def __enter__(self):
+            return self.open()
+
+        def __exit__(self, *exc):
+            self.close()
+            return False
+
+        def _ioctl(self, code, out_size=1024):
+            out = ctypes.create_string_buffer(out_size)
+            returned = wintypes.DWORD(0)
+            ok = _k32.DeviceIoControl(self.h, code, None, 0, out, out_size,
+                                      ctypes.byref(returned), None)
+            if not ok:
+                return None
+            return out.raw[:returned.value]
+
+        def get_1284_id(self):
+            raw = self._ioctl(IOCTL_USBPRINT_GET_1284_ID)
+            if not raw:
+                return ""
+            # first two bytes are a big-endian length prefix
+            return raw[2:].split(b"\x00")[0].decode("ascii", "replace")
+
+        def write(self, data):
+            written = wintypes.DWORD(0)
+            if not _k32.WriteFile(self.h, data, len(data), ctypes.byref(written), None):
+                raise OSError(f"WriteFile failed (err {ctypes.get_last_error()})")
+
+        def _pull(self):
+            buf = ctypes.create_string_buffer(self.MAX_READ)
+            nread = wintypes.DWORD(0)
+            if not _k32.ReadFile(self.h, buf, self.MAX_READ, ctypes.byref(nread), None):
+                raise OSError(f"ReadFile failed (err {ctypes.get_last_error()})")
+            return buf.raw[:nread.value]
+
+        def read(self, n, timeout=8.0):
+            deadline = None
+            while len(self._buf) < n:
+                chunk = self._pull()
+                if chunk:
+                    self._buf += chunk
+                    deadline = None
+                else:
+                    # nothing yet; arm a timeout so we never hang forever
+                    if deadline is None:
+                        deadline = _mono() + timeout
+                    elif _mono() > deadline:
+                        raise TimeoutError("USB read timed out")
+                    time.sleep(0.01)
+            out, self._buf = self._buf[:n], self._buf[n:]
+            return out
+
+        def drain(self):
+            # discard any queued/unsolicited bytes
+            for _ in range(8):
+                if not self._pull():
+                    break
+            self._buf = b""
+
+else:
+    # --------------------------------------------------------------------------
+    # macOS / POSIX libusb (PyUSB) USB Printer Class transport
+    # --------------------------------------------------------------------------
+    def _find_libusb_path(_name=None):
+        candidates = []
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            candidates.extend([
+                os.path.join(meipass, "libusb-1.0.dylib"),
+                os.path.join(meipass, "libusb-1.0.0.dylib"),
+            ])
+        candidates.extend([
+            "/opt/homebrew/lib/libusb-1.0.dylib",
+            "/opt/homebrew/opt/libusb/lib/libusb-1.0.dylib",
+            "/usr/local/lib/libusb-1.0.dylib",
+            "/usr/local/opt/libusb/lib/libusb-1.0.dylib",
+        ])
+        for c in candidates:
+            if os.path.exists(c):
+                return c
+        return ctypes.util.find_library("usb-1.0") or ctypes.util.find_library("libusb-1.0")
+
+    def _get_usb_backend():
+        try:
+            import usb.backend.libusb1 as libusb1
+        except ImportError as e:
+            raise RuntimeError("PyUSB is not installed. Run: pip install pyusb") from e
+        be = libusb1.get_backend(find_library=_find_libusb_path)
+        if be is None:
+            raise RuntimeError(
+                "libusb-1.0 was not found. On macOS, install it with: brew install libusb"
+            )
+        return be
+
+    def _find_printer_interface(dev):
+        """Return (cfg, intf, ep_out, ep_in) for the printer interface on dev."""
+        import usb.util
+        fallback = None
+        for cfg in dev:
+            for intf in cfg:
+                ep_out = usb.util.find_descriptor(
+                    intf,
+                    custom_match=lambda e: (
+                        usb.util.endpoint_direction(e.bEndpointAddress) == usb.util.ENDPOINT_OUT
+                        and usb.util.endpoint_type(e.bmAttributes) == usb.util.ENDPOINT_TYPE_BULK
+                    ),
+                )
+                ep_in = usb.util.find_descriptor(
+                    intf,
+                    custom_match=lambda e: (
+                        usb.util.endpoint_direction(e.bEndpointAddress) == usb.util.ENDPOINT_IN
+                        and usb.util.endpoint_type(e.bmAttributes) == usb.util.ENDPOINT_TYPE_BULK
+                    ),
+                )
+                if ep_out is not None and ep_in is not None:
+                    if intf.bInterfaceClass == USB_CLASS_PRINTER:
+                        return cfg, intf, ep_out, ep_in
+                    if fallback is None:
+                        fallback = (cfg, intf, ep_out, ep_in)
+        return fallback
+
+    def _dev_uri(dev):
+        bus = getattr(dev, "bus", 0) or 0
+        addr = getattr(dev, "address", 0) or 0
+        return f"usb://{dev.idVendor:04x}:{dev.idProduct:04x}:{bus}:{addr}"
+
+    def enumerate_epson_usb():
+        """Return USB device URIs for connected Epson (VID 0x04B8) USB printers."""
+        try:
+            import usb.core
+            be = _get_usb_backend()
+            devs = list(usb.core.find(find_all=True, idVendor=EPSON_VID, backend=be) or [])
+        except Exception:
+            return []
+        paths = []
+        for dev in devs:
             try:
-                sub = winreg.EnumKey(root, i)
-            except OSError:
-                break
-            i += 1
-            # sub looks like: ##?#USB#VID_04B8&PID_118A&MI_01#...#{guid}
-            if "VID_04B8" not in sub.upper():
+                if _find_printer_interface(dev) is not None:
+                    paths.append(_dev_uri(dev))
+            except Exception:
                 continue
-            path = sub
-            if path.startswith("##?#"):
-                path = "\\\\?\\" + path[4:]
-            paths.append(path)
-    finally:
-        winreg.CloseKey(root)
-    return paths
+        return paths
 
+    class UsbTransport:
+        """Bidirectional byte pipe to the printer's USB Printer Class interface."""
+        MAX_READ = 0x4000
+        READ_POLL_MS = 50
+        WRITE_TIMEOUT_MS = 5000
 
-class UsbTransport:
-    """Bidirectional byte pipe to the printer's usbprint interface."""
-    MAX_READ = 0x100000
+        def __init__(self, path):
+            self.path = path
+            self._dev = None
+            self._intf = None
+            self._ep_out = None
+            self._ep_in = None
+            self._buf = b""
 
-    def __init__(self, path):
-        self.path = path
-        self.h = None
-        self._buf = b""
+        def _match_device(self, devs):
+            if not self.path:
+                return devs[0] if devs else None
+            for d in devs:
+                if _dev_uri(d).lower() == str(self.path).lower():
+                    return d
+            return devs[0] if devs else None
 
-    def open(self):
-        self.h = _k32.CreateFileW(self.path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_RW,
-                                  None, OPEN_EXISTING,
-                                  FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH, None)
-        if not self.h or self.h == INVALID_HANDLE:
-            raise OSError(f"Cannot open USB device (err {ctypes.get_last_error()})")
-        self._ioctl(IOCTL_USBPRINT_SOFT_RESET)  # best-effort reset of the printer channel
-        return self
+        def open(self):
+            import usb.core
+            import usb.util
+            be = _get_usb_backend()
+            devs = list(usb.core.find(find_all=True, idVendor=EPSON_VID, backend=be) or [])
+            dev = self._match_device(devs)
+            if dev is None:
+                raise OSError("Cannot open Epson USB printer device (not found)")
+            found = _find_printer_interface(dev)
+            if found is None:
+                raise OSError("Epson USB device has no printer bulk endpoints")
+            cfg, intf, ep_out, ep_in = found
+            try:
+                if dev.is_kernel_driver_active(intf.bInterfaceNumber):
+                    dev.detach_kernel_driver(intf.bInterfaceNumber)
+            except (NotImplementedError, Exception):
+                pass
+            try:
+                usb.util.claim_interface(dev, intf.bInterfaceNumber)
+            except Exception as e:
+                raise OSError(
+                    f"Cannot claim USB printer interface ({e}). "
+                    "Close any print jobs or Epson status monitor and retry."
+                ) from e
+            self._dev = dev
+            self._intf = intf
+            self._ep_out = ep_out
+            self._ep_in = ep_in
+            # Best-effort USB Printer Class SOFT_RESET (bmRequestType=0x21, bRequest=0x02)
+            try:
+                dev.ctrl_transfer(0x21, USB_REQ_SOFT_RESET, 0, intf.bInterfaceNumber, 0, timeout=1000)
+            except Exception:
+                pass
+            return self
 
-    def close(self):
-        if self.h and self.h != INVALID_HANDLE:
-            _k32.CloseHandle(self.h)
-        self.h = None
+        def close(self):
+            if self._dev is not None:
+                import usb.util
+                try:
+                    if self._intf is not None:
+                        usb.util.release_interface(self._dev, self._intf.bInterfaceNumber)
+                except Exception:
+                    pass
+                try:
+                    usb.util.dispose_resources(self._dev)
+                except Exception:
+                    pass
+            self._dev = None
+            self._intf = None
+            self._ep_out = None
+            self._ep_in = None
 
-    def __enter__(self):
-        return self.open()
+        def __enter__(self):
+            return self.open()
 
-    def __exit__(self, *exc):
-        self.close()
-        return False
+        def __exit__(self, *exc):
+            self.close()
+            return False
 
-    def _ioctl(self, code, out_size=1024):
-        out = ctypes.create_string_buffer(out_size)
-        returned = wintypes.DWORD(0)
-        ok = _k32.DeviceIoControl(self.h, code, None, 0, out, out_size,
-                                  ctypes.byref(returned), None)
-        if not ok:
-            return None
-        return out.raw[:returned.value]
-
-    def get_1284_id(self):
-        raw = self._ioctl(IOCTL_USBPRINT_GET_1284_ID)
-        if not raw:
+        def get_1284_id(self):
+            # USB Printer Class GET_DEVICE_ID: bmRequestType=0xA1, bRequest=0x00
+            try:
+                raw = bytes(self._dev.ctrl_transfer(
+                    0xA1, USB_REQ_GET_DEVICE_ID, 0,
+                    self._intf.bInterfaceNumber, 1024, timeout=2000
+                ))
+                if len(raw) > 2:
+                    text = raw[2:].split(b"\x00")[0].decode("ascii", "replace")
+                    if "MDL:" in text or ";" in text:
+                        return text
+            except Exception:
+                pass
+            # Fallback to USB iProduct string descriptor
+            try:
+                import usb.util
+                prod = usb.util.get_string(self._dev, self._dev.iProduct) or ""
+                if prod:
+                    return f"MFG:EPSON;MDL:{prod};"
+            except Exception:
+                pass
             return ""
-        # first two bytes are a big-endian length prefix
-        return raw[2:].split(b"\x00")[0].decode("ascii", "replace")
 
-    def write(self, data):
-        written = wintypes.DWORD(0)
-        if not _k32.WriteFile(self.h, data, len(data), ctypes.byref(written), None):
-            raise OSError(f"WriteFile failed (err {ctypes.get_last_error()})")
+        def write(self, data):
+            try:
+                self._dev.write(self._ep_out.bEndpointAddress, data, timeout=self.WRITE_TIMEOUT_MS)
+            except Exception as e:
+                raise OSError(f"USB write failed: {e}") from e
 
-    def _pull(self):
-        buf = ctypes.create_string_buffer(self.MAX_READ)
-        nread = wintypes.DWORD(0)
-        if not _k32.ReadFile(self.h, buf, self.MAX_READ, ctypes.byref(nread), None):
-            raise OSError(f"ReadFile failed (err {ctypes.get_last_error()})")
-        return buf.raw[:nread.value]
+        def _pull(self):
+            import usb.core
+            try:
+                data = self._dev.read(self._ep_in.bEndpointAddress, self.MAX_READ, timeout=self.READ_POLL_MS)
+                return bytes(data)
+            except usb.core.USBTimeoutError:
+                return b""
+            except usb.core.USBError as e:
+                # errno 60 (ETIMEDOUT on macOS) or 110 (ETIMEDOUT on Linux)
+                if getattr(e, "errno", None) in (60, 110):
+                    return b""
+                raise OSError(f"USB read failed: {e}") from e
 
-    def read(self, n, timeout=8.0):
-        deadline = None
-        while len(self._buf) < n:
-            chunk = self._pull()
-            if chunk:
-                self._buf += chunk
-                deadline = None
-            else:
-                # nothing yet; arm a timeout so we never hang forever
-                if deadline is None:
-                    deadline = _mono() + timeout
-                elif _mono() > deadline:
-                    raise TimeoutError("USB read timed out")
-                time.sleep(0.01)
-        out, self._buf = self._buf[:n], self._buf[n:]
-        return out
+        def read(self, n, timeout=8.0):
+            deadline = None
+            while len(self._buf) < n:
+                chunk = self._pull()
+                if chunk:
+                    self._buf += chunk
+                    deadline = None
+                else:
+                    if deadline is None:
+                        deadline = _mono() + timeout
+                    elif _mono() > deadline:
+                        raise TimeoutError("USB read timed out")
+                    time.sleep(0.01)
+            out, self._buf = self._buf[:n], self._buf[n:]
+            return out
 
-    def drain(self):
-        # discard any queued/unsolicited bytes
-        for _ in range(8):
-            if not self._pull():
-                break
-        self._buf = b""
+        def drain(self):
+            for _ in range(8):
+                if not self._pull():
+                    break
+            self._buf = b""
 
 
 def _mono():

@@ -11,6 +11,10 @@ import time
 
 def app_dir():
     if getattr(sys, "frozen", False):
+        if sys.platform == "darwin":
+            d = os.path.expanduser("~/Library/Application Support/MaintenanceCounterUtility")
+            os.makedirs(d, exist_ok=True)
+            return d
         return os.path.dirname(sys.executable)
     return os.path.dirname(os.path.abspath(__file__))
 

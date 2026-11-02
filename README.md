@@ -105,6 +105,7 @@ If you intend to distribute this software for payment, it **requires legal revie
 
 ## (H) Build instructions
 
+### Windows
 ```sh
 # Create a virtual environment
 python -m venv .venv
@@ -123,6 +124,28 @@ python -m unittest discover -s tests -v
 
 # Build the binary
 pyinstaller --onefile --windowed --clean --noconfirm --name MaintenanceCounterUtility --hidden-import epson_d4 --hidden-import model_db --hidden-import printer_core --hidden-import eeprom_io --hidden-import operations --hidden-import oplog maintenance_counter_app.py
+```
+
+### macOS
+```sh
+# Install libusb (Homebrew)
+brew install libusb
+
+# Create and activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+pip install pyusb pillow pyinstaller
+
+# Generate icons (including app.icns)
+python gen_icon.py
+
+# Run the tests
+python -m unittest discover -s tests -v
+
+# Build the macOS .app bundle
+pyinstaller --windowed --clean --noconfirm --name MaintenanceCounterUtility --icon assets/app.icns --add-data "assets:assets" --add-binary "/opt/homebrew/opt/libusb/lib/libusb-1.0.dylib:." --hidden-import epson_d4 --hidden-import model_db --hidden-import printer_core --hidden-import eeprom_io --hidden-import operations --hidden-import oplog --hidden-import usb --hidden-import usb.backend.libusb1 maintenance_counter_app.py
 ```
 
 The only build dependency is PyInstaller. There are no runtime dependencies beyond the Python standard library and `ctypes`.
