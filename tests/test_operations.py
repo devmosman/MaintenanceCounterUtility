@@ -126,5 +126,19 @@ class ModelDbTest(unittest.TestCase):
         self.assertGreater(printer_core.model_count(), 50)
 
 
+class MacOSUsbAndPathsTest(unittest.TestCase):
+    def test_enumerate_epson_usb_returns_list(self):
+        import epson_d4
+        res = epson_d4.enumerate_epson_usb()
+        self.assertIsInstance(res, list)
+
+    def test_macos_frozen_app_dir_uses_application_support(self):
+        from unittest import mock
+        with mock.patch.object(sys, "frozen", True, create=True), \
+             mock.patch.object(sys, "platform", "darwin"):
+            d = eeprom_io.app_dir()
+            self.assertTrue(d.endswith(os.path.join("Library", "Application Support", "MaintenanceCounterUtility")))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

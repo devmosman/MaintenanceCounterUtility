@@ -30,6 +30,7 @@ import oplog
 APP_TITLE = "Waste Ink Maintenance Counter Utility"
 VERSION = "1.0.0"
 TERMS_VERSION = 2
+SYS_FONT = "Helvetica Neue" if sys.platform == "darwin" else "Segoe UI"
 
 WEBSITE_URL = "https://devmosman.github.io/MaintenanceCounterUtility"
 DONATE_URL = "https://ko-fi.com/devmosman"
@@ -217,7 +218,7 @@ def _scroll_terms_dialog(root, title, body, accept_label, decline_label):
     def no():
         result["ok"] = False; win.destroy()
 
-    ttk.Label(win, text=title, font=("Segoe UI", 13, "bold")).pack(side="top", pady=(12, 6))
+    ttk.Label(win, text=title, font=(SYS_FONT, 13, "bold")).pack(side="top", pady=(12, 6))
     # bottom-anchored controls FIRST so they are always visible
     bar = ttk.Frame(win); bar.pack(side="bottom", fill="x", padx=12, pady=10)
     ab = ttk.Button(bar, text=accept_label, command=ok); ab.pack(side="right", padx=4)
@@ -263,7 +264,7 @@ def reset_consent(root):
         result["ok"] = False; win.destroy()
 
     ttk.Label(win, text="Maintenance reset — please confirm",
-              font=("Segoe UI", 12, "bold")).pack(side="top", pady=(12, 6))
+              font=(SYS_FONT, 12, "bold")).pack(side="top", pady=(12, 6))
     # bottom-anchored controls FIRST so the checkbox + buttons are always visible
     bar = ttk.Frame(win); bar.pack(side="bottom", fill="x", padx=12, pady=10)
     cont_btn = ttk.Button(bar, text="Continue", command=cont); cont_btn.pack(side="right", padx=4)
@@ -274,7 +275,7 @@ def reset_consent(root):
     ttk.Label(win, text=ACK_PHYSICAL, wraplength=560, foreground="#222"
               ).pack(side="bottom", anchor="w", padx=16, pady=(6, 0))
     ttk.Label(win, text="Tick the box below, then click Continue.",
-              foreground="#444", font=("Segoe UI", 8)).pack(side="bottom", anchor="w", padx=16)
+              foreground="#444", font=(SYS_FONT, 8)).pack(side="bottom", anchor="w", padx=16)
     _scrolled_text(win, RESET_WARNING).pack(side="top", fill="both", expand=True, padx=12)
 
     cont_btn.state(["disabled"])
@@ -289,7 +290,7 @@ def show_about(root):
     import tkinter as tk
     from tkinter import ttk
     win = tk.Toplevel(root); win.title("About"); win.transient(root); win.grab_set()
-    ttk.Label(win, text=APP_TITLE, font=("Segoe UI", 12, "bold")).pack(side="top", pady=(12, 2))
+    ttk.Label(win, text=APP_TITLE, font=(SYS_FONT, 12, "bold")).pack(side="top", pady=(12, 2))
     ttk.Label(win, text=f"Version {VERSION}  ·  open source (EUPL-1.2)").pack(side="top")
     body = (f"\n{NON_AFFILIATION}\n\n"
             f"Database: {printer_core.model_count()} compatible models (embedded).\n"
@@ -320,9 +321,15 @@ def launch_gui():
     try:
         root.iconbitmap(resource_path(os.path.join("assets", "app.ico")))
     except Exception:
-        pass
+        try:
+            icon_img = tk.PhotoImage(file=resource_path(os.path.join("assets", "app.png")))
+            root.iconphoto(True, icon_img)
+            root._icon_img = icon_img
+        except Exception:
+            pass
     try:
-        ttk.Style(root).theme_use("vista")
+        if sys.platform != "darwin":
+            ttk.Style(root).theme_use("vista")
     except Exception:
         pass
 
@@ -343,11 +350,11 @@ def launch_gui():
             root.destroy(); return
         accept_terms()
 
-    ttk.Label(root, text=APP_TITLE, font=("Segoe UI", 13, "bold")).pack(pady=(10, 0))
+    ttk.Label(root, text=APP_TITLE, font=(SYS_FONT, 13, "bold")).pack(pady=(10, 0))
     ttk.Label(root, text="Maintenance-support utility · not an official Epson product",
-              foreground="#666", font=("Segoe UI", 8)).pack()
+              foreground="#666", font=(SYS_FONT, 8)).pack()
     model_var = tk.StringVar(value="Not connected")
-    ttk.Label(root, textvariable=model_var, font=("Segoe UI", 10, "bold")).pack(pady=(6, 0))
+    ttk.Label(root, textvariable=model_var, font=(SYS_FONT, 10, "bold")).pack(pady=(6, 0))
     badge_var = tk.StringVar(value="")
     badge = ttk.Label(root, textvariable=badge_var); badge.pack()
     status_var = tk.StringVar(value="")
@@ -363,14 +370,14 @@ def launch_gui():
         lab = ttk.Label(r, text="--", width=18, anchor="w"); lab.pack(side="left")
         names.append(nm); bars.append(bar); labels.append(lab)
     ttk.Label(waste_frame, text="(counter names are approximate)",
-              foreground="#888", font=("Segoe UI", 8)).pack(anchor="w", padx=6)
+              foreground="#888", font=(SYS_FONT, 8)).pack(anchor="w", padx=6)
 
     usage_frame = ttk.LabelFrame(root, text="Usage counters")
     usage_frame.pack(fill="x", padx=12, pady=4)
     usage_body = ttk.Frame(usage_frame); usage_body.pack(fill="x", padx=6, pady=4)
 
     ttk.Label(root, text=SAFETY_SHORT, wraplength=480, foreground="#555",
-              font=("Segoe UI", 8)).pack(padx=12, pady=(4, 4))
+              font=(SYS_FONT, 8)).pack(padx=12, pady=(4, 4))
 
     btns = ttk.Frame(root); btns.pack(pady=8)
     state_cache = {"waste": []}
@@ -412,7 +419,8 @@ def launch_gui():
             with printer_core.UsbBackend() as be:
                 return fn(be)
         except Exception as e:
-            messagebox.showerror(APP_TITLE, str(e))
+            if not selftest:
+                messagebox.showerror(APP_TITLE, str(e))
             model_var.set("Not connected / error"); badge_var.set(""); status_var.set(str(e))
             return None
         finally:
@@ -523,13 +531,13 @@ def launch_gui():
     tk.Button(links, text="❤ Support on Ko-fi", command=lambda: open_url(DONATE_URL),
               bg="#ff5e8a", fg="white", activebackground="#ff7aa0", activeforeground="white",
               relief="flat", padx=12, pady=3, cursor="hand2",
-              font=("Segoe UI", 9, "bold")).pack(side="left", padx=4)
+              font=(SYS_FONT, 9, "bold")).pack(side="left", padx=4)
 
     foot = ttk.Frame(root); foot.pack(side="bottom", fill="x")
     ttk.Label(foot, text=NON_AFFILIATION, wraplength=500, foreground="#777",
-              font=("Segoe UI", 7), justify="center").pack(pady=(2, 0))
+              font=(SYS_FONT, 7), justify="center").pack(pady=(2, 0))
     ttk.Label(foot, text=f"v{VERSION} · EUPL-1.2 · {printer_core.model_count()} models · USB",
-              foreground="#999", font=("Segoe UI", 7)).pack(pady=(0, 4))
+              foreground="#999", font=(SYS_FONT, 7)).pack(pady=(0, 4))
 
     root.after(250, refresh)
     if selftest:
